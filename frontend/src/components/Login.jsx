@@ -107,7 +107,7 @@ export default function Login() {
                     </button>
 
                     <p className="text-gray-600 text-sm">
-                        Chưa có tài khoảnnnnn?{' '}
+                        Chưa có tài khoảnnnnn,,,,,?{' '}
                         <a href="/register" className="text-pink-500 font-medium hover:underline">Đăng ký ngay</a>
                     </p>
                 </form>
