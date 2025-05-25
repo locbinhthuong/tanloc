@@ -1,255 +1,271 @@
-import { useState, useEffect } from 'react'
-import axios from 'axios'
-import { CogIcon } from '@heroicons/react/24/solid'
-import { UserIcon } from '@heroicons/react/24/solid'
-import { UserGroupIcon } from '@heroicons/react/24/solid'
-import { XCircleIcon } from '@heroicons/react/24/solid'
-import { CheckCircleIcon } from '@heroicons/react/24/solid'
-import { PencilSquareIcon } from '@heroicons/react/24/solid'
-import { TrashIcon } from '@heroicons/react/24/solid'
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import axios from "axios";
+import {
+    CogIcon,
+    UserIcon,
+    UserGroupIcon,
+    TrashIcon,
+} from "@heroicons/react/24/solid";
 
 export default function Dashboard() {
-    const [users, setUsers] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
-    const [currentUser, setCurrentUser] = useState(null)
-    const [deleteLoading, setDeleteLoading] = useState(false)
-    const [editingUser, setEditingUser] = useState(null)
-    const [editUsername, setEditUsername] = useState('')
-    const [updateLoading, setUpdateLoading] = useState(false)
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [currentUser, setCurrentUser] = useState(null);
+    const [actionLoading, setActionLoading] = useState(false);
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [updateFormData, setUpdateFormData] = useState({
+        username: "",
+        email: "",
+    });
+    const [updateError, setUpdateError] = useState("");
 
     useEffect(() => {
-        // Lấy thông tin user từ localStorage khi component mount
-        const user = localStorage.getItem('user')
-        if (user) {
-            setCurrentUser(JSON.parse(user))
-        }
-        fetchUsers()
-    }, [])
+        const user = localStorage.getItem("user");
+        if (user) setCurrentUser(JSON.parse(user));
+        fetchUsers();
+    }, []);
 
     const fetchUsers = async () => {
         try {
-            const response = await axios.get('/api/users')
-            setUsers(response.data)
-            setLoading(false)
-        } catch (err) {
-            setError('Không thể tải danh sách người dùng')
-            setLoading(false)
+            const token = localStorage.getItem("authToken");
+            const response = await axios.get("/api/users", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            setUsers(response.data);
+        } catch (error) {
+            setError("Không thể tải danh sách người dùng");
+        } finally {
+            setLoading(false);
         }
-    }
+    };
 
     const handleLogout = () => {
-        localStorage.removeItem('user')
-        window.location.href = '/login'
-    }
+        localStorage.removeItem("user");
+        localStorage.removeItem("authToken");
+        window.location.href = "/login";
+    };
+
     const handleDeleteUser = async (userId) => {
-        if (!window.confirm('Bạn có chắc chắn muốn xóa người dùng này?')) {
-            return
-        }
+        if (!window.confirm("Bạn có chắc chắn muốn xóa người dùng này?")) return;
 
-        setDeleteLoading(true)
+        setActionLoading(true);
         try {
-            const response = await axios.delete(`/api/users/${userId}`)
-            if (response.data.status === 'success') {
-                // Cập nhật lại danh sách users sau khi xóa
-                setUsers(users.filter(user => user.id !== userId))
-                alert('Xóa người dùng thành công')
+            const token = localStorage.getItem("authToken");
+            const response = await axios.delete(`/api/users/${userId}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            if (response.data.status === "success") {
+                setUsers(users.filter(user => user.id !== userId));
             }
         } catch (err) {
-            alert(err.response?.data?.message || 'Có lỗi xảy ra khi xóa người dùng')
+            alert(err.response?.data?.message || "Có lỗi xảy ra khi xóa");
         } finally {
-            setDeleteLoading(false)
+            setActionLoading(false);
         }
-    }
-    //hàm xử lý edit
-    const handleEditClick = (user) => {
-        setEditingUser(user)
-        setEditUsername(user.username)
-    }
+    };
 
-    const handleCancelEdit = () => {
-        setEditingUser(null)
-        setEditUsername('')
-    }
+    const handleOpenUpdateModal = (user) => {
+        setSelectedUser(user);
+        setUpdateFormData({ username: user.username, email: user.email });
+        setIsUpdateModalOpen(true);
+        setUpdateError("");
+    };
 
-    const handleUpdateUser = async (userId) => {
-        setUpdateLoading(true)
+    const handleCloseUpdateModal = () => {
+        setIsUpdateModalOpen(false);
+        setSelectedUser(null);
+        setUpdateFormData({ username: "", email: "" });
+        setUpdateError("");
+    };
+
+    const handleUpdateInputChange = (e) => {
+        const { name, value } = e.target;
+        setUpdateFormData({ ...updateFormData, [name]: value });
+    };
+
+    const handleUpdateUser = async () => {
+        setActionLoading(true);
+        setUpdateError("");
         try {
-            const response = await axios.put(`/api/users/${userId}`, {
-                username: editUsername
-            })
-            
-            if (response.data.status === 'success') {
-                // Cập nhật danh sách users
-                setUsers(users.map(user => 
-                    user.id === userId 
-                        ? { ...user, username: editUsername }
-                        : user
-                ))
-                setEditingUser(null)
-                alert('Cập nhật thông tin thành công')
+            const token = localStorage.getItem("authToken");
+            const response = await axios.put(`/api/users/${selectedUser.id}`, updateFormData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.data.status === "success") {
+                setUsers(users.map(user =>
+                    user.id === selectedUser.id ? response.data.user : user
+                ));
+                handleCloseUpdateModal();
+            } else {
+                setUpdateError(response.data.message || "Có lỗi khi cập nhật thông tin.");
             }
-        } catch (err) {
-            alert(err.response?.data?.message || 'Có lỗi xảy ra khi cập nhật thông tin')
+        } catch (error) {
+            setUpdateError(error.response?.data?.message || "Có lỗi xảy ra khi cập nhật thông tin.");
         } finally {
-            setUpdateLoading(false)
+            setActionLoading(false);
         }
-    }
+    };
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            {/* Navigation */}
+        <div className="min-h-screen bg-pink-100">
+            {/* 🔹 Navbar */}
             <nav className="bg-white shadow-lg">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16">
-                        <div className="flex items-center">
-                            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-                            <CogIcon className='flex items-center h-15 w-15'  />
-                                Quản lý tài khoản
-                            </h1>
-                        </div>
-                        <div className="flex items-center">
-                            <span className="text-gray-700 mr-4 flex items-center">
-                                <UserIcon className="h-5 w-5 text-gray-400 mr-px" />
-                                
-                                Xin chào, {currentUser?.username || 'User'} 
-                            </span>
-                            <button
-                                onClick={handleLogout}
-                                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
-                            >
-                                Đăng xuất
-                            </button>
-                        </div>
+                <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+                    <div className="flex items-center space-x-4">
+                        <h1 className="text-2xl font-bold text-pink-600 flex items-center">
+                            <CogIcon className="w-6 h-6 mr-2 text-pink-400" />
+                            Quản lý tài khoản
+                        </h1>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                        <span className="text-gray-700 flex items-center">
+                            <UserIcon className="w-5 h-5 text-gray-500 mr-1" />
+                            {currentUser?.username || "User"}
+                        </span>
+                        <button
+                            onClick={handleLogout}
+                            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+                        >
+                            Đăng xuất
+                        </button>
                     </div>
                 </div>
             </nav>
 
-            {/* Main Content */}
-            <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <div className="flex items-center">
-                            <div className="p-3 rounded-full bg-blue-100 text-blue-500">
-                                <UserGroupIcon className='h-10 w-10'/>
-                            </div>
-                            <div className="ml-4">
-                                <p className="text-sm text-gray-500">Tổng số người dùng</p>
-                                <p className="text-2xl font-semibold text-gray-900">{users.length}</p>
-                            </div>
+            {/* 🔹 Main Content */}
+            <div className="max-w-7xl mx-auto py-6">
+                {/* 🔹 Stats Card */}
+                <div className="bg-white rounded-lg shadow p-6 flex items-center justify-between mt-4">
+                    <div className="flex items-center space-x-4">
+                        <div className="p-3 bg-pink-200 text-pink-600 rounded-full">
+                            <UserGroupIcon className="h-8 w-8" />
                         </div>
+                        <div>
+                            <p className="text-sm text-gray-500">Tổng số người dùng</p>
+                            <p className="text-2xl font-semibold text-gray-900">{users.length}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <Link
+                            to="/AdminHome"
+                            className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 inline-block"
+                        >
+                            ← Quay lại Quản lý sản phẩm
+                        </Link>
                     </div>
                 </div>
 
-                {/* Users Table */}
-                <div className="bg-white shadow rounded-lg">
-                    <div className="px-4 py-5 sm:px-6 ">
-                        <h3 className="text-lg leading-6 font-medium text-gray-900 text-center">
-                            Danh sách người dùng
-                        </h3>
+                {/* 🔹 Users Table */}
+                <div className="bg-white shadow-lg rounded-lg mt-6">
+                    <div className="px-6 py-4 border-b">
+                        <h3 className="text-lg font-semibold text-gray-900 text-center">Danh sách người dùng</h3>
                     </div>
                     {loading ? (
                         <div className="text-center py-4">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500 mx-auto"></div>
                         </div>
                     ) : error ? (
                         <div className="text-center py-4 text-red-500">{error}</div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            ID
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Tên
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Email
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Ngày tạo
-                                        </th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Thao tác
-                                        </th>
+                        <table className="w-full divide-y divide-gray-200">
+                            <thead className="bg-pink-100 text-gray-600">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase">ID</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase">Tên</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase">Email</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase">Ngày tạo</th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium uppercase">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {users.map((user) => (
+                                    <tr key={user.id} className="hover:bg-pink-50">
+                                        <td className="px-6 py-4 text-sm">{user.id}</td>
+                                        <td className="px-6 py-4 text-sm">{user.username}</td>
+                                        <td className="px-6 py-4 text-sm">{user.email}</td>
+                                        <td className="px-6 py-4 text-sm">{new Date(user.created_at).toLocaleDateString()}</td>
+                                        <td className="px-6 py-4 text-right space-x-3">
+                                            <button
+                                                onClick={() => handleOpenUpdateModal(user)}
+                                                className="text-blue-600 hover:text-blue-900"
+                                            >
+                                                <CogIcon className="h-5 w-5" />
+                                            </button>
+                                            <button onClick={() => handleDeleteUser(user.id)} className="text-red-600 hover:text-red-900">
+                                                <TrashIcon className="h-5 w-5" />
+                                            </button>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {users.map((user) => (
-                                        <tr key={user.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {user.id}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {editingUser?.id === user.id ? (
-                                                    <div className="flex items-center space-x-2">
-                                                        <input
-                                                            type="text"
-                                                            value={editUsername}
-                                                            onChange={(e) => setEditUsername(e.target.value)}
-                                                            className="border border-gray-300 rounded px-2 py-1 text-sm"
-                                                            placeholder="Nhập tên mới"
-                                                        />
-                                                        <button
-                                                            onClick={() => handleUpdateUser(user.id)}
-                                                            disabled={updateLoading}
-                                                            className="text-green-600 hover:text-green-900"
-                                                            title="Lưu"
-                                                        >
-                                                            <CheckCircleIcon className="h-5 w-5" />
-                                                        </button>
-                                                        <button
-                                                            onClick={handleCancelEdit}
-                                                            className="text-red-600 hover:text-gray-900"
-                                                            title="Hủy"
-                                                        >
-                                                            <XCircleIcon className="h-5 w-5" />
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <div className="text-sm font-medium text-gray-900">
-                                                        {user.username}
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">{user.email}</div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {new Date(user.created_at).toLocaleDateString()}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                {editingUser?.id !== user.id && (
-                                                    <>
-                                                        <button 
-                                                            className="text-blue-600 hover:text-blue-900 mr-3"
-                                                            onClick={() => handleEditClick(user)}
-                                                            title="Sửa"
-                                                        >
-                                                            <PencilSquareIcon className="inline-block h-5 w-5" />
-                                                        </button>
-                                                        <button 
-                                                            className="text-red-600 hover:text-red-900"
-                                                            onClick={() => handleDeleteUser(user.id)}
-                                                            disabled={deleteLoading}
-                                                            title="Xóa"
-                                                        >
-                                                            <TrashIcon className="inline-block h-5 w-5" />
-                                                        </button>
-                                                    </>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                ))}
+                            </tbody>
+                        </table>
                     )}
                 </div>
             </div>
+
+            {/* 🔹 Update User Modal */}
+            {isUpdateModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+                    <div className="bg-white p-6 rounded-md shadow-lg w-96">
+                        <h2 className="text-lg font-semibold mb-4">Chỉnh sửa người dùng</h2>
+                        {updateError && <p className="text-red-500 mb-2">{updateError}</p>}
+                        <div className="mb-4">
+                            <label htmlFor="username" className="block text-gray-700 text-sm font-bold mb-2">
+                                Tên người dùng:
+                            </label>
+                            <input
+                                type="text"
+                                id="username"
+                                name="username"
+                                value={updateFormData.username}
+                                onChange={handleUpdateInputChange}
+                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">
+                                Email:
+                            </label>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                value={updateFormData.email}
+                                onChange={handleUpdateInputChange}
+                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            />
+                        </div>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={handleCloseUpdateModal}
+                                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 mr-2"
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                onClick={handleUpdateUser}
+                                disabled={actionLoading}
+                                className={`bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition ${actionLoading && 'opacity-50 cursor-not-allowed'}`}
+                            >
+                                {actionLoading ? "Đang cập nhật..." : "Lưu"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
-    )
+    );
 }

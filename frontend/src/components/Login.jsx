@@ -1,148 +1,117 @@
-import { useState } from 'react'
-import axios from 'axios'
-import { UserCircleIcon } from '@heroicons/react/24/solid'
-import { LockClosedIcon } from '@heroicons/react/24/solid'
-import { EnvelopeIcon } from '@heroicons/react/24/solid'
-import { InformationCircleIcon } from '@heroicons/react/24/solid'
-import { CheckCircleIcon } from '@heroicons/react/24/solid'
-import { ArrowPathIcon } from '@heroicons/react/24/solid'
+import { useState } from 'react';
+import axios from 'axios';
+import { UserCircleIcon, LockClosedIcon, EnvelopeIcon, InformationCircleIcon, CheckCircleIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 export default function Login() {
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [error, setError] = useState('')
-    const [success, setSuccess] = useState('')
-    const [loading, setLoading] = useState(false)
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate(); // Initialize useNavigate
 
     const handleSubmit = async (e) => {
-        e.preventDefault()
-        setLoading(true)
-        setError("")
-        setSuccess("")
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+        setSuccess('');
     
         try {
             const response = await axios.post('/api/login', {
                 email,
-                password
-            })
-            
+                password,
+            });
+    
             if (response.data.status === 'success') {
-                setSuccess('Đăng nhập thành công!')
-                localStorage.setItem('user', JSON.stringify(response.data.user))
-                // Reload trang để chuyển sang Dashboard
-                setTimeout(function () {
-                window.location.reload()
-                }, 2000)
+                setSuccess('Đăng nhập thành công!');
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+                localStorage.setItem('role', response.data.role);
+                localStorage.setItem('authToken', response.data.token); // Lưu token vào localStorage
+                const role = response.data.role;
+                if (role === 'admin') {
+                    navigate('/admin');
+                } else if (role === 'user') {
+                    navigate('/products');
+                }
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Có lỗi xảy ra')
+            setError(err.response?.data?.message || 'Có lỗi xảy ra');
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }
+    };
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-50 to-white flex items-center justify-center p-4">
-            <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-2xl">
-                {/* Header - giữ nguyên */}
-                <div className="text-center">
-                    <h2 className="text-4xl font-bold text-gray-900 tracking-tight mb-2">
-                        Chào mừng trở lại
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                        Vui lòng đăng nhập để tiếp tục
-                    </p>
-                </div>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-100 via-pink-200 to-pink-300 p-6">
+            <div className="max-w-md w-full bg-white p-10 rounded-3xl shadow-2xl text-center space-y-6">
+                <h2 className="text-4xl font-extrabold text-pink-500 tracking-wide">
+                    💖 Chào mừng đến với cửa hàng! 💖
+                </h2>
+                <p className="text-gray-500 text-sm">
+                    Vui lòng đăng nhập để trải nghiệm những sản phẩm tốt nhất.
+                </p>
 
-                <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-                    <div className="space-y-5">
-                        {/* Email field */}
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                                Địa chỉ email
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <EnvelopeIcon className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    id="email"
-                                    type="email"
-                                    required
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Password field */}
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                                Mật khẩu
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <LockClosedIcon className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    id="password"
-                                    type="password"
-                                    required
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Địa chỉ email</label>
+                        <div className="relative">
+                            <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                            <input
+                                type="email"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full pl-10 pr-3 py-3 border rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition"
+                            />
                         </div>
                     </div>
 
-                    {/* Remember me & Forgot password - giữ nguyên */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Mật khẩu</label>
+                        <div className="relative">
+                            <LockClosedIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                            <input
+                                type="password"
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full pl-10 pr-3 py-3 border rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition"
+                            />
+                        </div>
+                    </div>
 
-                    {/* Error message */}
                     {error && (
-                        <div className="rounded-lg bg-red-50 p-4 text-sm text-red-600 flex items-center">
+                        <div className="flex items-center text-red-600 bg-red-100 p-3 rounded-xl">
                             <InformationCircleIcon className="w-5 h-5 mr-2 text-red-500" />
                             {error}
                         </div>
                     )}
 
-                    {/* Success message */}
                     {success && (
-                        <div className="rounded-lg bg-green-50 p-4 text-sm text-green-600 flex items-center">
+                        <div className="flex items-center text-green-600 bg-green-100 p-3 rounded-xl">
                             <CheckCircleIcon className="w-5 h-5 mr-2 text-green-500" />
                             {success}
                         </div>
                     )}
 
-                    {/* Submit button */}
-                    <div className=''>
-                        
-                    </div>
-                    <div>
-                        <button
-                            
-                            type="submit"
-                            disabled={loading}
-                            className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white 
-                                ${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}>
-                            {loading && (
-                                <ArrowPathIcon className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
-                            )}
-                                <UserCircleIcon className='h-5 w-5 mr-1'/>
-                        
-                            {loading ? 'Đang xử lý...' : 'Đăng nhập'}
-                                    
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className={`w-full py-3 flex items-center justify-center text-white rounded-xl font-medium 
+                            ${loading ? 'bg-pink-400 cursor-not-allowed' : 'bg-pink-500 hover:bg-pink-600 transition'}`}
+                    >
+                        {loading && <ArrowPathIcon className="animate-spin -ml-1 mr-3 h-5 w-5" />}
+                        <UserCircleIcon className="h-5 w-5 mr-2" />
+                        {loading ? 'Đang xử lý...' : 'Truy Cập Hệ Thống'}
+                    </button>
 
-                        </button>
-                    </div>
-                    <p className="text-center text-sm text-gray-600">
-                        Chưa có tài khoản?{' '}
-                        <a href="/register" className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
-                            Đăng ký ngay
-                        </a>
+                    <p className="text-gray-600 text-sm">
+                        Chưa có tài khoảnnnnn?{' '}
+                        <a href="/register" className="text-pink-500 font-medium hover:underline">Đăng ký ngay</a>
                     </p>
                 </form>
             </div>
         </div>
-    )
+    );
 }
