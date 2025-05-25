@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { products } from '../dulieu/data';
 import Header from './Header';
-import Footer from './footer';
+import Footer from './Footer';
 import Navigation from './Navigation';
 
 export default function ProductHome() {
