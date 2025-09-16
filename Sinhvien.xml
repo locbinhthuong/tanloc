@@ -1,0 +1,39 @@
+<?xml version="1" encoding="UTF-8"?>
+<lop>
+    <sinhvien>
+        <name>Nguyễn Tấn Lộc</name>
+        <id>2</id>
+        <subject>
+            <subject_name>Toán</subject_name>
+            <score>9</score>
+        </subject>
+        <subject>
+            <subject_name>Hóa</subject_name>
+            <score>8.5</score>
+        </subject>
+    </sinhvien>
+    <sinhvien>
+        <name>Nguyễn Tấn Lộc</name>
+        <id>2</id>
+        <subject>
+            <subject_name>Sinh</subject_name>
+            <score>10</score>
+        </subject>
+        <subject>
+            <subject_name>Sử</subject_name>
+            <score>8</score>
+        </subject>
+    </sinhvien>
+    <sinhvien>
+        <name>Nguyễn Tấn Lộc</name>
+        <id>2</id>
+        <subject>
+            <subject_name>Địa</subject_name>
+            <score>10</score>
+        </subject>
+        <subject>
+            <subject_name>Ngữ Văn</subject_name>
+            <score>7</score>
+        </subject>
+    </sinhvien>
+</lop>

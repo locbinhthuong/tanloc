@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thuvien>
+    <sach>
+        <title>Lập Trình C++</title>
+        <author>Nguyễn Tấn Lộc</author>
+        <year>2020</year>
+        <genre>Lập trình</genre>
+    </sach>
+
+    <sach>
+        <title>Công nghệ ứng dụng và xml</title>
+        <author>Nguyễn Thái Hòa</author>
+        <year>2022</year>
+        <genre>Công nghệ</genre>
+    </sach>
+
+    <sach>
+        <title>Bảo trì phần mềm</title>
+        <author>Nguyễn Thị Nổ Hủ</author>
+        <year>1988</year>
+        <genre>Môn học</genre>
+    </sach>
+</thuvien>

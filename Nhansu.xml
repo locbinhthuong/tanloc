@@ -1,0 +1,41 @@
+<!--
+    Namespace xmlns:hr="http://company.com/hr" để chứa thông tin nhân sự.
+    Namespace xmlns:dep="http://company.com/department" để chứa thông tin phòng ban.
+    XML Namespace là một cơ chế trong XML dùng để tránh xung đột tên
+    thẻ khi nhiều hệ thống hoặc nhiều bộ dữ liệu khác nhau cùng được tích hợp.
+-->
+
+
+
+<?xml version encoding+"UTF_8">
+<company xmlns:hr="http://company.com/hr" xmlns:dep="http://company.com/department">
+    <dep:department name="Kế Toán">
+        <hr:employee id="KT1">
+            <hr:name>Nguyễn Văn A</hr:name>
+            <hr:position>Kế Toán Trưởng</hr:position>
+        </hr:employee>
+         <hr:employee id="KT2">
+            <hr:name>Nguyễn Văn B</hr:name>
+            <hr:position>Kế Toán Vien</hr:position>
+        </hr:employee>
+        <hr:employee id="KT3">
+            <hr:name>Nguyễn Văn C</hr:name>
+            <hr:position>Kế Toán Vien</hr:position>
+        </hr:employee>
+    </dep:department>
+
+    <dep:department name="Công nghệ thông tin">
+        <hr:employee id="CN1">
+            <hr:name>Trần Văn A</hr:name>
+            <hr:position>Trưởng Phòng</hr:position>
+        </hr:employee>
+         <hr:employee id="CN2">
+            <hr:name>Trần Văn A</hr:name>
+            <hr:position>Lập Trình Viên</hr:position>
+        </hr:employee>
+        <hr:employee id="CN3">
+            <hr:name>Trần Văn A</hr:name>
+            <hr:position>Quản trị hệ thống</hr:position>
+        </hr:employee>
+    </dep:department>
+</company>

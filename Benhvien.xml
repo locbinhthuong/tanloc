@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hospital xmlns="http://example.com/hospital"
+          xmlns:pat="http://example.com/patient"
+          xmlns:doc="http://example.com/doctor"
+          xmlns:app="http://example.com/appointment">
+          <!--
+          Default Namespace (Namespace mặc định)
+            Là namespace không cần dùng prefix.
+            Prefix: một từ khóa ngắn bạn đặt để trỏ tới namespace đó, dùng trước tên thẻ.
+            Trong pat:patient thì pat là prefix, patient là tên thẻ.
+          -->
+
+    <app:appointment id="A1" date="2025-09-16" status="Đã khám">
+        <pat:patient id="P1">
+            <pat:name>Nguyễn Văn A</pat:name>
+            <pat:dob>1990-09-15</pat:dob>
+        </pat:patient>
+        <doc:doctor id="D1">
+            <doc:name>Trần Thị B</doc:name>
+            <doc:specialty>Nội khoa</doc:specialty>
+        </doc:doctor>
+    </app:appointment>
+
+    <app:appointment id="A2" date="2025-09-17" status="Chưa khám">
+        <pat:patient id="P2">
+            <pat:name>Nguyễn Văn C</pat:name>
+            <pat:dob>1985-11-20</pat:dob>
+        </pat:patient>
+        <doc:doctor id="D2">
+            <doc:name>Ngô Thị D</doc:name>
+            <doc:specialty>Nhi khoa</doc:specialty>
+        </doc:doctor>
+    </app:appointment>
+</hospital>
